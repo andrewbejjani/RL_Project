@@ -42,15 +42,13 @@ class TradingEnv(gym.Env):
         self.net_worth = self.initial_balance
         self.max_net_worth = self.initial_balance
 
-        self.avg_cost = 0.0  # <--- NEW: Reset on new episode
+        self.avg_cost = 0.0
         
         return self._get_observation(), {}
 
     def _get_observation(self):
-        # NEURAL NETWORK SCALING FIX
-        # We divide by sensible constants to squish all values between ~ -1.0 and 1.0
         
-        max_price_scale = 1000.0 # SPY rarely exceeds 600 in our timeframe
+        max_price_scale = 1000.0 # SPY rarely exceeds 1000 in our timeframe
         max_shares_scale = 100.0 # Assuming we rarely hold more than 100 shares of SPY
         
         obs = np.array([
@@ -61,7 +59,7 @@ class TradingEnv(gym.Env):
             self.df.loc[self.current_step, 'RSI'] / 100.0,
             self.df.loc[self.current_step, 'BB_Upper'] / max_price_scale,
             self.df.loc[self.current_step, 'BB_Lower'] / max_price_scale,
-            self.df.loc[self.current_step, 'VIX'] / 100.0  # <--- NEW VIX FEATURE
+            self.df.loc[self.current_step, 'VIX'] / 100.0  
         ], dtype=np.float32)
         
         # Clip values just in case extreme market events cause spikes
