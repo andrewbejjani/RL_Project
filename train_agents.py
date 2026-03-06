@@ -4,8 +4,23 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from load_data import fetch_and_preprocess_data
 from trading_env import TradingEnv
 from stable_baselines3.common.vec_env import VecFrameStack
+import random
+import numpy as np
 
 from typing import Callable
+
+import torch # <--- Add this!
+
+def set_global_seed(seed: int = 42):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+# Lock in the seed
+SEED = 42 
+set_global_seed(SEED)
 
 # Helper function for dynamic learning rate
 def linear_schedule(initial_value: float) -> Callable[[float], float]:
@@ -20,8 +35,8 @@ def train_models():
     
     # 2. Setup the Environment
     env = DummyVecEnv([lambda: TradingEnv(df=train_df)])
-    # NEW: Stack the last 5 days of observations so the agent sees momentum!
-    env = VecFrameStack(env, n_stack=5)
+    # NEW: Stack the last 10 days of observations so the agent sees momentum!
+    env = VecFrameStack(env, n_stack=10)
     os.makedirs("models", exist_ok=True)
 
     policy_kwargs = dict(net_arch=[128, 128]) # Doubles the size of the AI's brain
@@ -29,9 +44,10 @@ def train_models():
     # Force A2C to explore more
     print("\n--- Training A2C Agent ---")
     model_a2c = A2C("MlpPolicy", env, 
-        ent_coef=0.01, 
+        ent_coef=0.05, 
         policy_kwargs=policy_kwargs, # <--- NEW
         learning_rate=linear_schedule(0.001), 
+        seed=SEED,
         verbose=0)
     model_a2c.learn(total_timesteps=500000) 
     model_a2c.save("models/a2c_trading_agent")
@@ -45,6 +61,7 @@ def train_models():
         policy_kwargs=policy_kwargs, # <--- NEW
         learning_rate=linear_schedule(0.001), # Starts at 0.001, decays to 0
         batch_size=128, 
+        seed=SEED,
         verbose=0)
     model_ppo.learn(total_timesteps=500000)
     model_ppo.save("models/ppo_trading_agent")

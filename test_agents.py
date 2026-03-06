@@ -45,8 +45,8 @@ def test_models():
     # Initialize the test environment
     test_env = DummyVecEnv([lambda: TradingEnv(df=test_df)])
 
-    # NEW: Stack the last 5 days of observations so the agent sees momentum!
-    test_env = VecFrameStack(test_env, n_stack=5)
+    # NEW: Stack the last 10 days of observations so the agent sees momentum!
+    test_env = VecFrameStack(test_env, n_stack=10)
 
     # 1. Load Trained Models
     model_a2c = A2C.load("models/a2c_trading_agent")

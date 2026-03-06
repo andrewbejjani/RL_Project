@@ -8,7 +8,7 @@ def fetch_and_preprocess_data(ticker="SPY", start_date="2015-01-01", end_date="2
     """
     print(f"Fetching data for {ticker} from {start_date} to {end_date}...")
     
-# 1. Data Sourcing
+    # 1. Data Sourcing
     df = yf.download(ticker, start=start_date, end=end_date)
     
     # Flatten multi-index columns if yfinance returns them
